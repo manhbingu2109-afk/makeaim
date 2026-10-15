@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>TikTok · Live có rương (VN)</title>
+  <style>
+    :root{
+      --bg:#07080c; --card:#141820; --line:#2a3142; --text:#f3f5f9;
+      --muted:#8b93a7; --pink:#fe2c55; --ok:#2ee59d; --gold:#ffd45a;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; color:var(--text);
+      font:15px/1.45 system-ui,-apple-system,sans-serif;
+      background:radial-gradient(900px 420px at 0% 0%,rgba(254,44,85,.16),transparent 55%),var(--bg);
+    }
+    .wrap{max-width:920px;margin:0 auto;padding:24px 16px 48px}
+    h1{margin:0;font-size:22px}
+    .sub{color:var(--muted);font-size:13px;margin:4px 0 16px}
+    .panel{
+      background:rgba(20,24,32,.92);border:1px solid var(--line);border-radius:16px;
+      padding:14px;margin-bottom:12px;
+    }
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+    textarea{
+      width:100%; border-radius:12px; border:1px solid var(--line);
+      background:#0e1016; color:var(--text); padding:11px 12px; font:inherit; outline:none;
+      min-height:70px; resize:vertical;
+    }
+    textarea:focus{border-color:rgba(254,44,85,.55)}
+    .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    button{
+      border:0;border-radius:12px;padding:11px 14px;font:inherit;font-weight:700;
+      cursor:pointer;display:inline-flex;align-items:center;gap:8px;
+    }
+    button svg{width:16px;height:16px}
+    .btn{background:linear-gradient(135deg,#fe2c55,#ff5a7a);color:#fff}
+    .gray{background:#1a1f2a;color:var(--text);border:1px solid var(--line)}
+    .btn:disabled,.gray:disabled{opacity:.5;cursor:not-allowed}
+    .status{
+      display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+      font-size:13px;color:var(--muted);margin:10px 0 12px;
+    }
+    .dot{width:8px;height:8px;border-radius:50%;background:#555}
+    .dot.on{background:var(--ok);box-shadow:0 0 10px rgba(46,229,157,.6)}
+    .dot.run{background:var(--pink);box-shadow:0 0 10px rgba(254,44,85,.5)}
+    .alert{
+      margin-bottom:10px;padding:12px 14px;border-radius:12px;font-weight:700;
+      background:rgba(254,44,85,.14);border:1px solid rgba(254,44,85,.35);
+      display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;
+    }
+    .live-link{
+      color:#ff7a93; font-weight:800; font-size:12px;
+      text-decoration:none; white-space:nowrap;
+    }
+    .live-link:hover{text-decoration:underline;color:#ffd0d9}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+    .top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+    .user{font-weight:800}
+    .meta{color:var(--muted);font-size:12px;margin-top:4px}
+    .b{font-size:11px;font-weight:800;padding:4px 9px;border-radius:999px;background:#243044;color:var(--muted)}
+    .b.live{background:rgba(46,229,157,.12);color:var(--ok)}
+    .b.chest{background:rgba(254,44,85,.12);color:#ff7a93}
+    .b.vn{background:rgba(255,212,90,.12);color:var(--gold)}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+    .stat{background:#0c0e14;border:1px solid var(--line);border-radius:10px;padding:12px 8px;text-align:center}
+    .stat .n{font-size:22px;font-weight:800;color:var(--gold)}
+    .stat .l{font-size:11px;color:var(--muted);margin-top:3px}
+    .log{height:140px;overflow:auto;border-radius:12px;padding:12px;background:#090b10;border:1px solid var(--line);font-size:12px;color:var(--muted);margin-top:12px}
+    .empty{color:var(--muted);text-align:center;padding:28px 8px}
+    .hint{font-size:12px;color:var(--muted);margin-top:8px}
+    .badges{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>TikTok · Live có rương (VN)</h1>
+    <p class="sub">Chỉ hiện phòng <b>có rương</b> · vùng Việt Nam · có link vào live. Bản web đang demo — quét thật cần Python.</p>
+
+    <div class="panel">
+      <label for="session">Cookie sessionid (acc TikTok của bạn)</label>
+      <textarea id="session" placeholder="Dán sessionid vào đây — chỉ lưu trên máy bạn"></textarea>
+      <div class="row">
+        <button class="btn" id="btnStart" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 8v8l7-4-7-4Z"/></svg>
+          Bắt đầu quét
+        </button>
+        <button class="gray" id="btnStop" type="button" disabled>
+          <svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
+          Dừng
+        </button>
+        <button class="gray" id="btnClear" type="button">Xóa kết quả</button>
+      </div>
+      <p class="hint">Live không rương bị bỏ qua. Link demo có thể “Không có phiên LIVE” vì username giả — data thật mới vào được phòng.</p>
+    </div>
+
+    <div class="status">
+      <span class="dot" id="dot"></span>
+      <span id="statusText">Đang dừng</span>
+      <span id="statCount">· 0 phòng có rương</span>
+    </div>
+
+    <div id="alerts"></div>
+    <div id="list"></div>
+    <div class="log" id="log"></div>
+  </div>
+
+<script>
+const $ = id => document.getElementById(id);
+const logEl = $('log');
+let timer = null;
+let rooms = [];
+let scanning = false;
+
+const log = (m) => {
+  logEl.insertAdjacentHTML('afterbegin', `<div>[${new Date().toLocaleTimeString()}] ${m}</div>`);
+};
+
+function remain(endsAt) {
+  if (!endsAt) return '—';
+  const s = Math.max(0, Math.floor((endsAt - Date.now()) / 1000));
+  return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+}
+
+function liveUrl(r) {
+  if (r.user) return 'https://www.tiktok.com/@' + encodeURIComponent(r.user) + '/live';
+  if (r.roomId) return 'https://www.tiktok.com/live/' + r.roomId;
+  return 'https://www.tiktok.com/live';
+}
+
+function setStatus(text, mode) {
+  $('statusText').textContent = text;
+  $('dot').className = 'dot' + (mode === 'run' ? ' run' : mode === 'on' ? ' on' : '');
+  $('statCount').textContent = '· ' + rooms.length + ' phòng có rương';
+  $('btnStart').disabled = scanning;
+  $('btnStop').disabled = !scanning;
+}
+
+function render() {
+  // chỉ giữ phòng còn hạn + có rương
+  rooms = rooms.filter(r => r.chests > 0 && (!r.endsAt || r.endsAt > Date.now()));
+  const list = $('list');
+  const alerts = $('alerts');
+  if (!rooms.length) {
+    list.innerHTML = '<div class="empty">Chưa có phòng có rương — bấm Bắt đầu quét</div>';
+    alerts.innerHTML = '';
+    $('statCount').textContent = '· 0 phòng có rương';
+    return;
+  }
+  let ah = '';
+  list.innerHTML = rooms.map(r => {
+    const url = liveUrl(r);
+    ah += `<div class="alert">
+      <span>🎁 @${r.user} — ${r.chests} rương · ${r.coins} xu · còn ${remain(r.endsAt)}</span>
+      <a class="live-link" href="${url}" target="_blank" rel="noopener">Vào live →</a>
+    </div>`;
+    return `<div class="card">
+      <div class="top">
+        <div>
+          <div class="user">@${r.user}</div>
+          <div class="meta">${r.title || ''}${r.roomId ? ' · room ' + r.roomId : ''} · VN</div>
+        </div>
+        <div class="badges">
+          <span class="b vn">VN</span>
+          <span class="b live">LIVE</span>
+          <span class="b chest">CÓ RƯƠNG</span>
+          <a class="live-link" href="${url}" target="_blank" rel="noopener">Vào live →</a>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="n">${r.chests}</div><div class="l">Số rương</div></div>
+        <div class="stat"><div class="n">${r.coins}</div><div class="l">Số xu</div></div>
+        <div class="stat"><div class="n">${remain(r.endsAt)}</div><div class="l">Thời gian còn</div></div>
+      </div>
+    </div>`;
+  }).join('');
+  alerts.innerHTML = ah;
+  $('statCount').textContent = '· ' + rooms.length + ' phòng có rương';
+}
+
+/** Demo: chỉ emit phòng CÓ rương + gắn region VN */
+function fakeScanTick() {
+  const names = ['live_vn','shop_vn','game_vn','karaoke_vn','music_vn','cook_vn','talk_vn'];
+  const titles = ['Live VN · săn rương','Event xu Việt Nam','Phòng rương tối','Live deal VN'];
+  if (Math.random() > 0.4) {
+    const item = {
+      user: names[Math.floor(Math.random() * names.length)] + Math.floor(Math.random() * 90),
+      title: titles[Math.floor(Math.random() * titles.length)],
+      roomId: String(100000 + Math.floor(Math.random() * 900000)),
+      region: 'VN',
+      chests: 1 + Math.floor(Math.random() * 3),
+      coins: [50, 100, 120, 500, 1000][Math.floor(Math.random() * 5)],
+      endsAt: Date.now() + (30 + Math.floor(Math.random() * 90)) * 1000,
+    };
+    rooms = [item, ...rooms.filter(r => r.roomId !== item.roomId)].slice(0, 12);
+    log(`VN · rương @${item.user} · ${item.chests} rương · ${item.coins} xu · còn ${remain(item.endsAt)}`);
+    render();
+  } else {
+    log('đang quét feed live VN... (bỏ phòng không rương)');
+  }
+}
+
+$('session').value = localStorage.getItem('tt_session') || '';
+$('session').addEventListener('change', () => {
+  localStorage.setItem('tt_session', $('session').value.trim());
+  log('đã lưu session trên trình duyệt');
+});
+
+$('btnStart').onclick = () => {
+  const sid = $('session').value.trim();
+  if (!sid) {
+    log('hãy dán sessionid trước');
+    return;
+  }
+  localStorage.setItem('tt_session', sid);
+  scanning = true;
+  setStatus('Đang quét demo · chỉ rương · VN', 'run');
+  log('bắt đầu — DEMO (username giả → link có thể không vào được live thật)');
+  fakeScanTick();
+  timer = setInterval(fakeScanTick, 4000);
+};
+
+$('btnStop').onclick = () => {
+  scanning = false;
+  clearInterval(timer);
+  timer = null;
+  setStatus('Đã dừng', 'on');
+  log('đã dừng quét');
+};
+
+$('btnClear').onclick = () => {
+  rooms = [];
+  render();
+  log('đã xóa kết quả');
+};
+
+setInterval(() => { if (rooms.length) render(); }, 1000);
+
+setStatus('Đang dừng');
+render();
+log('web sẵn sàng · chỉ hiện live có rương · region VN (demo)');
+</script>
+</body>
+</html>
