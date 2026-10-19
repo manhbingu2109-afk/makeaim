@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TManh ios Vip</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #000;
+    color: #0ff;
+    font-family: 'Courier New', monospace;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* ===== AUTH OVERLAY ===== */
+  #auth-overlay {
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.95);
+    z-index: 9999999; display: flex; align-items: center; justify-content: center;
+    font-family: 'Courier New', monospace;
+  }
+  .auth-box {
+    width: 340px; background: rgba(0, 20, 25, 0.9); padding: 30px 25px;
+    border-radius: 8px; border: 1px solid #0ff;
+    box-shadow: 0 0 40px rgba(0, 255, 255, 0.3); text-align: center;
+  }
+  .auth-title { color: #0ff; font-size: 20px; letter-spacing: 2px; margin-bottom: 10px; text-shadow: 0 0 10px #0ff;}
+  .auth-desc { color: #aaa; font-size: 13px; margin-bottom: 20px; }
+  .auth-input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #333; background: #000; color: #0ff; text-align: center; font-family: monospace; font-size: 14px; outline: none; margin-bottom: 15px; box-sizing: border-box; }
+  .auth-input:focus { border-color: #0ff; box-shadow: 0 0 10px rgba(0, 255, 255, 0.5); }
+  .auth-btn { width: 100%; padding: 12px; background: #0ff; color: #000; border: none; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; letter-spacing: 2px; transition: 0.3s; }
+  .auth-btn:hover { background: #fff; box-shadow: 0 0 20px #0ff; }
+  .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .auth-getkey { width: 100%; padding: 12px; background: transparent; border: 1px solid #0aa; color: #0aa; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; letter-spacing: 2px; margin-top: 10px; transition: 0.3s; }
+  .auth-getkey:hover { background: rgba(0, 255, 255, 0.1); color: #0ff; border-color: #0ff; }
+  .auth-status { margin-top: 15px; font-size: 12px; color: #aaa; min-height: 18px; }
+
+  /* ===== BACKGROUND LINES ===== */
+  .bg-lines { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .line {
+    position: absolute;
+    background: linear-gradient(90deg, transparent, #0ff, transparent);
+    height: 1px; width: 100%; opacity: 0.3;
+    animation: scan 3s linear infinite;
+  }
+  .line:nth-child(1) { top: 10%; animation-delay: 0s; }
+  .line:nth-child(2) { top: 25%; animation-delay: 0.5s; }
+  .line:nth-child(3) { top: 40%; animation-delay: 1s; }
+  .line:nth-child(4) { top: 55%; animation-delay: 1.5s; }
+  .line:nth-child(5) { top: 70%; animation-delay: 2s; }
+  .line:nth-child(6) { top: 85%; animation-delay: 2.5s; }
+  @keyframes scan { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+  .vline {
+    position: absolute; width: 1px; height: 100%;
+    background: linear-gradient(180deg, transparent, #0ff, transparent);
+    opacity: 0.15; animation: vscan 4s linear infinite;
+  }
+  .vline:nth-child(7) { left: 15%; animation-delay: 0s; }
+  .vline:nth-child(8) { left: 35%; animation-delay: 1s; }
+  .vline:nth-child(9) { left: 55%; animation-delay: 2s; }
+  .vline:nth-child(10) { left: 75%; animation-delay: 3s; }
+  @keyframes vscan { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
+
+  /* ===== GEARS ===== */
+  .gear {
+    position: fixed; z-index: 0; opacity: 0.15; color: #0ff;
+    font-size: 80px; animation: spin 8s linear infinite;
+  }
+  .gear.g1 { top: 5%; left: 5%; font-size: 100px; animation-duration: 12s; }
+  .gear.g2 { bottom: 8%; right: 6%; font-size: 70px; animation-direction: reverse; }
+  .gear.g3 { top: 60%; left: 3%; font-size: 50px; animation-duration: 6s; }
+  .gear.g4 { top: 15%; right: 10%; font-size: 60px; animation-direction: reverse; animation-duration: 10s; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  /* ===== SPARKS ===== */
+  .spark {
+    position: fixed; width: 3px; height: 3px; background: #0ff;
+    border-radius: 50%; box-shadow: 0 0 8px #0ff, 0 0 16px #0ff;
+    animation: float 4s linear infinite; z-index: 0; opacity: 0.6;
+  }
+  @keyframes float {
+    0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+    10% { opacity: 1; } 90% { opacity: 1; }
+    100% { transform: translateY(-10vh) translateX(50px); opacity: 0; }
+  }
+
+  /* ===== CONTAINER ===== */
+  .container {
+    position: relative; z-index: 10; width: 100%;
+    max-width: 520px; padding: 20px;
+    max-height: 95vh; overflow-y: auto;
+  }
+  .container::-webkit-scrollbar { width: 6px; }
+  .container::-webkit-scrollbar-thumb { background: #0ff; border-radius: 3px; }
+  .container::-webkit-scrollbar-track { background: rgba(0,255,255,0.05); }
+
+  .screen { display: none; animation: fadeIn 0.5s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== BOX ===== */
+  .box {
+    background: rgba(0, 20, 25, 0.85);
+    border: 1px solid #0ff; border-radius: 8px;
+    padding: 30px 25px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.05);
+    position: relative; overflow: hidden;
+  }
+  .box::before {
+    content: ''; position: absolute; top: 0; left: -100%;
+    width: 100%; height: 2px;
+    background: linear-gradient(90deg, transparent, #0ff, transparent);
+    animation: topLine 2s linear infinite;
+  }
+  @keyframes topLine { 0% { left: -100%; } 100% { left: 100%; } }
+
+  .title {
+    text-align: center; font-size: 22px; letter-spacing: 4px;
+    margin-bottom: 25px; color: #0ff;
+    text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+  .subtitle { text-align: center; font-size: 11px; color: #0aa; letter-spacing: 2px; margin-bottom: 20px; }
+
+  h2.small-title {
+    font-size: 14px; letter-spacing: 3px; color: #0aa;
+    text-align: center; margin-bottom: 18px; text-shadow: 0 0 8px #0aa;
+  }
+
+  /* ===== BUTTON ===== */
+  .btn {
+    width: 100%; padding: 14px;
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(0, 255, 255, 0.25));
+    border: 1px solid #0ff; border-radius: 6px;
+    color: #0ff; font-family: 'Courier New', monospace;
+    font-size: 15px; letter-spacing: 3px; cursor: pointer;
+    transition: all 0.3s; text-shadow: 0 0 8px #0ff;
+    position: relative; overflow: hidden;
+  }
+  .btn:hover {
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.25), rgba(0, 255, 255, 0.45));
+    box-shadow: 0 0 25px rgba(0, 255, 255, 0.6);
+    transform: translateY(-2px);
+  }
+  .btn:active { transform: translateY(0); }
+
+  /* ===== OPTIONS ===== */
+  .options {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 15px; margin-top: 10px;
+  }
+  .opt-btn {
+    padding: 30px 10px;
+    background: rgba(0, 30, 35, 0.7);
+    border: 1px solid #0ff; border-radius: 8px;
+    color: #0ff; font-family: 'Courier New', monospace;
+    font-size: 15px; letter-spacing: 2px; cursor: pointer;
+    transition: all 0.3s; text-shadow: 0 0 8px #0ff;
+    position: relative; overflow: hidden;
+  }
+  .opt-btn::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(0,255,255,0.15) 50%, transparent 70%);
+    transform: translateX(-100%); transition: transform 0.5s;
+  }
+  .opt-btn:hover::after { transform: translateX(100%); }
+  .opt-btn:hover {
+    background: rgba(0, 60, 70, 0.8);
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    transform: scale(1.03);
+  }
+
+  /* ===== OFFSET PANEL ===== */
+  .offset-panel {
+    margin-top: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid #0ff; border-radius: 6px;
+    padding: 15px; font-size: 11px; line-height: 1.7;
+    max-height: 420px; overflow-y: auto;
+    box-shadow: inset 0 0 15px rgba(0, 255, 255, 0.1);
+  }
+  .offset-panel::-webkit-scrollbar { width: 6px; }
+  .offset-panel::-webkit-scrollbar-thumb { background: #0ff; border-radius: 3px; }
+  .offset-panel::-webkit-scrollbar-track { background: rgba(0,255,255,0.05); }
+
+  .offset-row {
+    padding: 8px 0;
+    border-bottom: 1px dashed rgba(0, 255, 255, 0.15);
+  }
+  .offset-row:last-child { border-bottom: none; }
+
+  .offset-addr { color: #fa0; text-shadow: 0 0 5px #fa0; font-weight: bold; }
+  .offset-hex { color: #0ff; text-shadow: 0 0 5px #0ff; word-break: break-all; display: block; margin-top: 3px; }
+  .offset-hex.orig { color: #0aa; }
+  .offset-hex.patch { color: #0f8; }
+
+  .hex-label { color: #0aa; font-size: 10px; letter-spacing: 1px; }
+
+  .back-btn {
+    margin-top: 18px; width: 100%; padding: 12px;
+    background: transparent; border: 1px solid #0aa; border-radius: 6px;
+    color: #0aa; font-family: 'Courier New', monospace;
+    font-size: 13px; letter-spacing: 2px; cursor: pointer; transition: all 0.3s;
+  }
+  .back-btn:hover {
+    color: #0ff; border-color: #0ff;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+  }
+
+  .telegram {
+    position: fixed; bottom: 15px; right: 15px; z-index: 20;
+    color: #0ff; font-size: 12px; letter-spacing: 1px;
+    text-decoration: none; padding: 8px 14px;
+    border: 1px solid #0ff; border-radius: 20px;
+    background: rgba(0, 20, 25, 0.9);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+    transition: all 0.3s;
+  }
+  .telegram:hover {
+    background: rgba(0, 255, 255, 0.15);
+    box-shadow: 0 0 25px rgba(0, 255, 255, 0.7);
+  }
+
+  .warning {
+    text-align: center; color: #fa0; font-size: 13px;
+    letter-spacing: 2px; padding: 40px 20px;
+    text-shadow: 0 0 10px #fa0;
+    animation: pulse 1.5s infinite;
+  }
+
+  .copy-btn {
+    margin-top: 10px; width: 100%; padding: 10px;
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid #0aa; border-radius: 6px;
+    color: #0aa; font-family: 'Courier New', monospace;
+    font-size: 12px; letter-spacing: 2px; cursor: pointer;
+    transition: all 0.3s;
+  }
+  .copy-btn:hover {
+    background: rgba(0, 255, 255, 0.25);
+    color: #0ff; border-color: #0ff;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== AUTH OVERLAY ===== -->
+<div id="auth-overlay">
+  <div class="auth-box">
+    <div class="auth-title">🔒 TMANH IOS VIP</div>
+    <div class="auth-desc">Nhập key để sử dụng tool</div>
+    <input type="text" id="auth-input" class="auth-input" placeholder="TManhios-6hour-XXXXXXXXXX" autocomplete="off">
+    <button id="auth-btn" class="auth-btn">KÍCH HOẠT KEY</button>
+    <button id="auth-getkey-btn" class="auth-getkey" onclick="layKeyMienPhi()">🔓 GET KEY 6H MIỄN PHÍ</button>
+    <div id="auth-status" class="auth-status"></div>
+  </div>
+</div>
+
+<div class="bg-lines">
+  <div class="line"></div><div class="line"></div><div class="line"></div>
+  <div class="line"></div><div class="line"></div><div class="line"></div>
+  <div class="vline"></div><div class="vline"></div><div class="vline"></div><div class="vline"></div>
+</div>
+
+<div class="gear g1">⚙</div>
+<div class="gear g2">⚙</div>
+<div class="gear g3">⚙</div>
+<div class="gear g4">⚙</div>
+
+<div id="sparks"></div>
+
+<a href="https://zalo.me/g/b5zilnajwolxcijlfvba" target="_blank" class="telegram">✈ @_ptm2109</a>
+
+<div class="container" id="main-container" style="display: none;">
+
+  <!-- MAIN -->
+  <div class="screen active" id="screen-main">
+    <div class="box">
+      <div class="title" style="font-size: 18px; margin-bottom: 15px;">TManh ios Vip</div>
+      <h2 class="small-title">// CHỌN CHỨC NĂNG</h2>
+      <div class="options">
+        <button class="opt-btn" onclick="goTo('screen-aim')">AIM</button>
+        <button class="opt-btn" onclick="goTo('screen-chams')">CHAMS</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AIM -->
+  <div class="screen" id="screen-aim">
+    <div class="box">
+      <h2 class="small-title">// AIM MODULE</h2>
+      <div class="options">
+        <button class="opt-btn" onclick="goTo('screen-cache')">CACHE</button>
+        <button class="opt-btn" onclick="goTo('screen-avatar')">AVATAR</button>
+      </div>
+      <button class="back-btn" onclick="goTo('screen-main')">← QUAY LẠI</button>
+    </div>
+  </div>
+
+  <!-- CACHE -->
+  <div class="screen" id="screen-cache">
+    <div class="box">
+      <h2 class="small-title">// CACHE — AIM TYPES</h2>
+      <div class="options">
+        <button class="opt-btn" onclick="showOffset('CACHE','AIM DRAG')">AIM DRAG</button>
+        <button class="opt-btn" onclick="showOffset('CACHE','AIM MAGIC')">AIM MAGIC</button>
+        <button class="opt-btn" onclick="showOffset('CACHE','AIM NECK')">AIM NECK</button>
+        <button class="opt-btn" onclick="showOffset('CACHE','AIM BODY')">AIM BODY</button>
+      </div>
+      <button class="opt-btn" style="width:100%;margin-top:15px;padding:16px;" onclick="showOffset('CACHE','NHẸ TÂM')">NHẸ TÂM</button>
+      <div id="cacheOffsetDisplay"></div>
+      <button class="back-btn" onclick="goTo('screen-aim')">← QUAY LẠI</button>
+    </div>
+  </div>
+
+  <!-- AVATAR -->
+  <div class="screen" id="screen-avatar">
+    <div class="box">
+      <h2 class="small-title">// AVATAR — AIM TYPES</h2>
+      <div class="options">
+        <button class="opt-btn" onclick="showOffset('AVATAR','AIM CHEST')">AIM CHEST</button>
+        <button class="opt-btn" onclick="showOffset('AVATAR','AIM HEAD')">AIM HEAD</button>
+        <button class="opt-btn" onclick="showOffset('AVATAR','LOCK NECK')">LOCK NECK</button>
+        <button class="opt-btn" onclick="showOffset('AVATAR','DRAG ANTENA')">DRAG ANTENA</button>
+      </div>
+      <button class="opt-btn" style="width:100%;margin-top:15px;padding:16px;" onclick="showOffset('AVATAR','DỊ TẬT')">DỊ TẬT</button>
+      <div id="avatarOffsetDisplay"></div>
+      <button class="back-btn" onclick="goTo('screen-aim')">← QUAY LẠI</button>
+    </div>
+  </div>
+
+  <!-- CHAMS -->
+  <div class="screen" id="screen-chams">
+    <div class="box">
+      <h2 class="small-title">// CHAMS MODULE</h2>
+      <div class="options">
+        <button class="opt-btn" onclick="chamsWarning('NHÂN VẬT')">NHÂN VẬT</button>
+        <button class="opt-btn" onclick="chamsWarning('SÚNG')">SÚNG</button>
+      </div>
+      <div id="chamsDisplay"></div>
+      <button class="back-btn" onclick="goTo('screen-main')">← QUAY LẠI</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ============================================================
+  // CẤU HÌNH API KEY
+  // ============================================================
+  var API_VERIFY = "https://tmanhios.pretty-pilot.workers.dev/verify";
+  var API_GETKEY = "https://tmanhios.pretty-pilot.workers.dev/getkey";
+  var STORAGE_HWID = "tmanhios_hwid";
+
+  // SPARKS
+  const sparksContainer = document.getElementById('sparks');
+  for (let i = 0; i < 25; i++) {
+    const s = document.createElement('div');
+    s.className = 'spark';
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.animationDelay = Math.random() * 4 + 's';
+    s.style.animationDuration = (3 + Math.random() * 3) + 's';
+    sparksContainer.appendChild(s);
+  }
+
+  // NAV
+  function goTo(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0,0);
+  }
+
+  // ============================================================
+  // HỆ THỐNG XÁC THỰC KEY
+  // ============================================================
+  function getHWID() {
+      let hwid = localStorage.getItem(STORAGE_HWID);
+      if (!hwid) {
+          const arr = new Uint8Array(16);
+          crypto.getRandomValues(arr);
+          hwid = Array.from(arr).map(b => b.toString(16).padStart(2, "0")).join("");
+          localStorage.setItem(STORAGE_HWID, hwid);
+      }
+      return hwid;
+  }
+
+  function setStatus(msg, cls) {
+      const el = document.getElementById("auth-status");
+      el.textContent = msg;
+      if (cls === 'ok') el.style.color = '#0ff';
+      else if (cls === 'err') el.style.color = '#f00';
+      else el.style.color = '#aaa';
+  }
+
+  document.getElementById("auth-btn").addEventListener("click", async function () {
+      var input = document.getElementById("auth-input");
+      var btn = this;
+      var k = input.value.trim();
+
+      if (!k) { setStatus("⚠️ Nhập key trước!", "err"); return; }
+      
+      var regex = /^TManhios\-(6hour|12hour|1hour|1day|7day|1month|forever)\-[A-Z0-9]{4,64}$/i;
+      if (!regex.test(k)) { setStatus("❌ Sai định dạng key", "err"); return; }
+
+      btn.textContent = "ĐANG KIỂM TRA...";
+      btn.disabled = true;
+      setStatus("⏳ Đang kết nối server...", "info");
+
+      try {
+          var hwid = getHWID();
+          var form = new FormData();
+          form.append("key", k);
+          form.append("hwid", hwid);
+          
+          var r = await fetch(API_VERIFY, { method: "POST", body: form });
+          var j = await r.json();
+
+          if (j.status === "success") {
+              setStatus("✅ Kích hoạt thành công!", "ok");
+              setTimeout(function () {
+                  document.getElementById("auth-overlay").style.display = "none";
+                  document.getElementById("main-container").style.display = "block";
+              }, 800);
+          } else {
+              var msgMap = {
+                  "invalid_key": "Key không tồn tại",
+                  "hwid_mismatch": "Key đã dùng trên thiết bị khác",
+                  "expired": "Key đã hết hạn"
+              };
+              setStatus("❌ " + (msgMap[j.msg] || j.msg || "Lỗi server"), "err");
+          }
+      } catch (e) {
+          setStatus("❌ Không kết nối được server", "err");
+      } finally {
+          btn.textContent = "KÍCH HOẠT KEY";
+          btn.disabled = false;
+      }
+  });
+
+  document.getElementById("auth-input").addEventListener("keydown", function(e) {
+      if (e.key === "Enter") document.getElementById("auth-btn").click();
+  });
+
+  async function layKeyMienPhi() {
+      var btn = document.getElementById("auth-getkey-btn");
+      btn.textContent = "ĐANG LẤY LINK...";
+      btn.disabled = true;
+      setStatus("⏳ Đang tạo link vượt...", "info");
+
+      try {
+          var hwid = getHWID();
+          var form = new FormData();
+          form.append("hwid", hwid);
+          
+          var r = await fetch(API_GETKEY, { method: "POST", body: form });
+          var j = await r.json();
+
+          if (j.status === "success") {
+              window.open(j.link, "_blank");
+              setStatus("✅ Đã mở link. Vượt xong → copy key → dán vào ô trên.", "ok");
+              setTimeout(function() { btn.textContent = "🔓 GET KEY 6H MIỄN PHÍ"; btn.disabled = false; }, 3000);
+          } else {
+              setStatus("❌ Lỗi: " + (j.msg || "không xác định"), "err");
+              btn.textContent = "🔓 GET KEY 6H MIỄN PHÍ";
+              btn.disabled = false;
+          }
+      } catch (e) {
+          setStatus("❌ Không kết nối được server", "err");
+          btn.textContent = "🔓 GET KEY 6H MIỄN PHÍ";
+          btn.disabled = false;
+      }
+  }
+
+  // ===== OFFSET DATA =====
+  const DATA = {
+    'AIM DRAG': [
+      { addr: '0x10',   hex: '01 00 00 00 83 C0 CA 3D E4 8C 02 3E 00 00 00 00' },
+      { addr: '0xB0',   hex: '01 00 00 00 83 C0 CA 3D E4 8C 02 3E 00 00 00 00' },
+      { addr: '0xD300', hex: '01 00 00 00 83 C0 CA 3D E4 8C 02 3E 00 00 00 00' },
+      { addr: '0xD5F0', hex: '01 00 00 00 83 C0 CA 3D 72 83 05 3E 00 00 00 00' }
+    ],
+    'AIM MAGIC': [
+      { addr: '0xD304', orig: 'A8 E7 71 3D', patch: '5E D4 CA 3D' },
+      { addr: '0xD308', orig: 'E4 8C 02 3E', patch: 'E5 8C 02 3E' },
+      { addr: '0xD310', orig: 'DC 52 39 BD', patch: 'FC E0 F7 3D' },
+      { addr: '0xD314', orig: '27 C1 8B 3C', patch: '96 99 A4 3C' },
+      { addr: '0xD318', orig: 'C0 D0 F8 B9', patch: '1F 86 EF B9' },
+      { addr: '0xD5F4', orig: '72 4B 72 3D', patch: 'B0 D1 CA 3D' },
+      { addr: '0xD600', orig: '18 04 27 BD', patch: '4E 48 F7 3D' },
+      { addr: '0xD604', orig: '00 84 A7 37', patch: '55 37 8D 3C' },
+      { addr: '0xD608', orig: '00 00 80 B1', patch: '6C 03 F3 B9' }
+    ],
+    'AIM NECK': [
+      { addr: '0xB0',   hex: '32 30 32 32 2E 33 2E 34 37 66 31 00 09 00 00 00' },
+      { addr: '0xD300', hex: '01 00 00 00 59 DF CA 3D E4 8C 02 3E 00 00 00 00' },
+      { addr: '0xD310', hex: '8D DE AB BB 27 C1 8B 3C C0 D0 F8 B9 00 00 00 00' },
+      { addr: '0xD5F0', hex: '01 00 00 00 3E 11 CB 3D 72 83 05 3E 00 00 00 00' },
+      { addr: '0xD600', hex: '7C 61 A6 BB 00 84 A7 37 00 00 80 B1 00 00 00 00' }
+    ],
+    'AIM BODY': [
+      { addr: '0xD304', orig: 'A8 E7 71 3D', patch: '5E D4 CA 3D' },
+      { addr: '0xD308', orig: 'E4 8C 02 3E', patch: 'E5 8C 02 3E' },
+      { addr: '0xD310', orig: 'DC 52 39 BD', patch: 'FC E0 F7 3D' },
+      { addr: '0xD314', orig: '27 C1 8B 3C', patch: '96 99 A4 3C' },
+      { addr: '0xD318', orig: 'C0 D0 F8 B9', patch: '1F 86 EF B9' },
+      { addr: '0xD5F4', orig: '72 4B 72 3D', patch: 'B0 D1 CA 3D' },
+      { addr: '0xD600', orig: '18 04 27 BD', patch: '4E 48 F7 3D' },
+      { addr: '0xD604', orig: '00 84 A7 37', patch: '55 37 8D 3C' },
+      { addr: '0xD608', orig: '00 00 80 B1', patch: '6C 03 F3 B9' }
+    ],
+    'NHẸ TÂM': [
+      { addr: '0xD300', orig: 'A8 E7 71', patch: '59 DF CA' },
+      { addr: '0xD310', orig: 'BD', patch: '3D' },
+      { addr: '0xD5F4', orig: '72 4B 72', patch: '3E 11 CB' },
+      { addr: '0xD600', orig: 'BD', patch: '3D' }
+    ],
+    'AIM CHEST': [
+      { addr: '0x10',   hex: '78 00 32 30 31 38 2E 34 2E 31 32 66 31 00 00 00' },
+      { addr: '0xB0',   hex: '32 30 31 38 2E 34 2E 31 32 66 31 00 09 00 00 00' },
+      { addr: '0xCC00', hex: '00 00 00 00 00 00 00 00 01 00 00 00 29 5C 8F 3D' },
+      { addr: '0xCC10', hex: '29 5C 8F 3D 02 00 00 00 7D 1A 89 BD 50 26 9F 3B' },
+      { addr: '0xD300', hex: '01 00 00 00 06 EF CA 3D E4 8C 02 3E 00 00 00 00' },
+      { addr: '0xD310', hex: '71 E8 2D BC 29 C1 8B 3C C0 D0 F8 B9 00 00 00 00' },
+      { addr: '0xD5F0', hex: '01 00 00 00 B3 07 CB 3D 72 83 05 3E 00 00 00 00' },
+      { addr: '0xD600', hex: '83 23 33 BC 40 85 A7 37 00 00 80 B1 00 00 00 00' },
+      { addr: '0xDE90', hex: '00 00 00 00 00 00 00 00 01 00 00 00 29 5C 8F 3D' },
+      { addr: '0xDEA0
